@@ -1,0 +1,41 @@
+name: Build mod
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '*.zip'
+      - '.github/workflows/build.yml'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Ekstrak ZIP
+        run: |
+          ZIP=$(ls *.zip | head -1)
+          echo "Mengekstrak $ZIP"
+          mkdir -p src_extract
+          unzip -o "$ZIP" -d src_extract
+          ls src_extract
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: 8.1.1
+
+      - name: Compile
+        working-directory: src_extract/thecomplex
+        run: gradle build --no-daemon --stacktrace
+
+      - name: Upload jar
+        uses: actions/upload-artifact@v4
+        with:
+          name: thecomplex-jar
+          path: src_extract/thecomplex/build/libs/*.jar
