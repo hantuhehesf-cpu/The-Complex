@@ -5,6 +5,7 @@ on:
   push:
     paths:
       - '*.zip'
+      - '*.schem'
       - '.github/workflows/build.yml'
 
 jobs:
@@ -20,6 +21,21 @@ jobs:
           mkdir -p src_extract
           unzip -o "$ZIP" -d src_extract
           ls src_extract
+
+      - name: Salin schematic ke dalam mod
+        run: |
+          DEST=src_extract/thecomplex/src/main/resources/data/thecomplex/schem
+          mkdir -p "$DEST/rooms"
+          shopt -s nullglob
+          for f in *.schem; do
+            n=$(echo "${f%.schem}" | tr 'A-Z' 'a-z' | tr -d ' _-')
+            if [ "$n" = "mainchamber" ]; then
+              cp "$f" "$DEST/main_chamber.schem"
+            else
+              cp "$f" "$DEST/rooms/"
+            fi
+          done
+          find "$DEST" -type f
 
       - uses: actions/setup-java@v4
         with:
